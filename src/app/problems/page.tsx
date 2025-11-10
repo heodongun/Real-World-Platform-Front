@@ -1,15 +1,12 @@
 import type { Metadata } from 'next';
 
-import { ProblemsClient } from '@/components/problems/problems-client';
-import { fetchProblems } from '@/lib/api';
+import { ProblemsPageClient } from '@/components/problems/problems-page-client';
 
 export const metadata: Metadata = {
   title: '문제 목록 · Real-World Coding Platform',
 };
 
-export default async function ProblemsPage() {
-  const problems = await fetchProblems().catch(() => []);
-
+export default function ProblemsPage() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
       <div className="max-w-3xl space-y-4">
@@ -22,7 +19,7 @@ export default async function ProblemsPage() {
       </div>
 
       <div className="mt-10">
-        <ProblemsClient problems={problems} />
+        <ProblemsPageClient />
       </div>
     </section>
   );

@@ -5,6 +5,8 @@ import { ProblemDetailClient } from '@/components/problems/problem-detail-client
 import { fetchProblem } from '@/lib/api';
 import { difficultyBadgeColor, languageColor } from '@/lib/utils';
 
+export const runtime = 'edge';
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
