@@ -1,5 +1,6 @@
 import { ApiError, ApiErrorPayload, resolveApiBaseUrl } from './config';
 import {
+  AdminStats,
   AuthResponse,
   CreateProblemPayload,
   DashboardStats,
@@ -12,6 +13,8 @@ import {
   Submission,
   SubmissionPayload,
   UpdateProblemPayload,
+  UpdateUserRolePayload,
+  User,
 } from './types';
 
 interface NextFetchOptions {
@@ -169,4 +172,38 @@ export const deleteProblem = (token: string, problemId: string) =>
   apiFetch<void>(`/api/problems/${problemId}`, {
     method: 'DELETE',
     token,
+  });
+
+// Admin: User management
+export const fetchAllUsers = (token: string) =>
+  apiFetch<User[]>('/api/admin/users', {
+    token,
+    cache: 'no-store',
+  });
+
+export const updateUserRole = (token: string, userId: string, payload: UpdateUserRolePayload) =>
+  apiFetch<User>(`/api/admin/users/${userId}/role`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify(payload),
+  });
+
+export const deleteUser = (token: string, userId: string) =>
+  apiFetch<void>(`/api/admin/users/${userId}`, {
+    method: 'DELETE',
+    token,
+  });
+
+// Admin: Submission management
+export const fetchAllSubmissions = (token: string) =>
+  apiFetch<Submission[]>('/api/admin/submissions', {
+    token,
+    cache: 'no-store',
+  });
+
+// Admin: Statistics
+export const fetchAdminStats = (token: string) =>
+  apiFetch<AdminStats>('/api/admin/stats', {
+    token,
+    cache: 'no-store',
   });
