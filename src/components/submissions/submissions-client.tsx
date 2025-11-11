@@ -20,7 +20,11 @@ export const SubmissionsClient = () => {
     setError(null);
     try {
       const data = await fetchSubmissions(token);
-      setSubmissions(data);
+      // 최신순으로 정렬 (createdAt 기준 내림차순)
+      const sortedData = [...data].sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setSubmissions(sortedData);
     } catch (err) {
       setError('제출 목록을 불러오지 못했습니다.');
       console.error(err);
