@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { AdminGuard } from './admin-guard';
-import { AdminNav } from './admin-nav';
+import { AdminPageFrame } from './admin-page-frame';
 import { useAuth } from '@/components/providers/auth-provider';
 import { fetchProblems, createProblem, updateProblem, deleteProblem } from '@/lib/api';
 import type { Problem, CreateProblemPayload, Difficulty } from '@/lib/types';
@@ -85,129 +85,121 @@ export function AdminProblemsClient() {
     }
   };
 
+  const panelClass =
+    'rounded-3xl border border-slate-100 bg-white/95 text-slate-900 shadow-xl shadow-slate-900/5 backdrop-blur';
+
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-gray-50">
-        <AdminNav />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Problem Management</h1>
+      <>
+        <AdminPageFrame
+          title="Problem Management"
+          description="문제를 생성하고 난이도나 태그를 정리하여 더 나은 학습 경험을 제공하세요."
+          actionSlot={
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-white/20"
             >
-              + Create Problem
+              <span aria-hidden="true">＋</span> Create Problem
             </button>
-          </div>
-
+          }
+        >
           {loading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading problems...</p>
+            <div className={`${panelClass} flex flex-col items-center gap-4 px-6 py-12 text-center`}>
+              <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+              <p className="text-slate-600">문제 목록을 불러오는 중입니다...</p>
             </div>
           )}
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+          {!loading && error && (
+            <div className={`${panelClass} border border-red-200 bg-red-50/80 text-red-900`}>
               {error}
             </div>
           )}
 
           {!loading && !error && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Slug
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Difficulty
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Language
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tags
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {problems.map((problem) => (
-                    <tr key={problem.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{problem.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{problem.slug}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getDifficultyColor(problem.difficulty)}`}
-                        >
-                          {problem.difficulty}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {problem.language}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {problem.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => setEditingProblem(problem)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(problem.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      </td>
+            <section className={`${panelClass} overflow-hidden`}>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
+                  <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th className="px-6 py-3">Title</th>
+                      <th className="px-6 py-3">Slug</th>
+                      <th className="px-6 py-3">Difficulty</th>
+                      <th className="px-6 py-3">Language</th>
+                      <th className="px-6 py-3">Tags</th>
+                      <th className="px-6 py-3 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white text-slate-600">
+                    {problems.map((problem) => (
+                      <tr key={problem.id} className="transition hover:bg-indigo-50/30">
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-semibold text-slate-900">{problem.title}</div>
+                          <div className="text-xs text-slate-400">{problem.id}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-500">{problem.slug}</td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getDifficultyColor(
+                              problem.difficulty,
+                            )}`}
+                          >
+                            {problem.difficulty}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-500">{problem.language}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            {problem.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => setEditingProblem(problem)}
+                            className="mr-3 rounded-md px-3 py-1 text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(problem.id)}
+                            className="rounded-md px-3 py-1 text-red-600 transition hover:bg-red-50 hover:text-red-700"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           )}
-        </main>
-      </div>
+        </AdminPageFrame>
 
-      {showCreateModal && (
-        <ProblemFormModal
-          onClose={() => setShowCreateModal(false)}
-          onSubmit={handleCreate}
-          submitting={submitting}
-        />
-      )}
+        {showCreateModal && (
+          <ProblemFormModal
+            onClose={() => setShowCreateModal(false)}
+            onSubmit={handleCreate}
+            submitting={submitting}
+          />
+        )}
 
-      {editingProblem && (
-        <ProblemFormModal
-          problem={editingProblem}
-          onClose={() => setEditingProblem(null)}
-          onSubmit={(payload) => handleUpdate(editingProblem.id, payload)}
-          submitting={submitting}
-        />
-      )}
+        {editingProblem && (
+          <ProblemFormModal
+            problem={editingProblem}
+            onClose={() => setEditingProblem(null)}
+            onSubmit={(payload) => handleUpdate(editingProblem.id, payload)}
+            submitting={submitting}
+          />
+        )}
+      </>
     </AdminGuard>
   );
 }
