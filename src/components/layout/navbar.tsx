@@ -56,6 +56,16 @@ export const Navbar = () => {
                 <p className="text-sm font-medium text-white">{user.name}</p>
                 <p className="text-xs text-slate-400">{user.role}</p>
               </div>
+              {user.role === 'ADMIN' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push('/admin')}
+                  className="hidden text-sm text-yellow-400 sm:flex hover:text-yellow-300"
+                >
+                  ⚙️ Admin
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"

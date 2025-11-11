@@ -126,3 +126,30 @@ export interface ExecuteCodePayload {
   files: Record<string, string>;
   testCommand: string;
 }
+
+export interface CreateProblemPayload {
+  title: string;
+  slug: string;
+  description: string;
+  difficulty: Difficulty;
+  language: Language;
+  tags: string[];
+  starterCode?: string | null;
+  testFiles: TestFile[];
+}
+
+export interface UpdateProblemPayload {
+  title?: string;
+  slug?: string;
+  description?: string;
+  difficulty?: Difficulty;
+  language?: Language;
+  tags?: string[];
+  starterCode?: string | null;
+  testFiles?: TestFile[];
+}
+
+export interface TestFile {
+  path: string;
+  content: string;
+}
