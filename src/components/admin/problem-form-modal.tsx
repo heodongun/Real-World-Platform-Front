@@ -10,6 +10,12 @@ interface ProblemFormModalProps {
   submitting: boolean;
 }
 
+const fieldClass =
+  'w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20';
+const textAreaClass = `${fieldClass} font-mono text-sm`;
+const buttonMutedClass =
+  'rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100';
+
 export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: ProblemFormModalProps) {
   const [formData, setFormData] = useState<CreateProblemPayload>({
     title: problem?.title || '',
@@ -67,63 +73,57 @@ export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: Pro
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white px-1 pb-6 text-slate-900 shadow-[0_25px_80px_rgba(15,23,42,0.35)]">
+        <div className="sticky top-0 z-10 flex items-center justify-between rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <h2 className="text-2xl font-semibold">
             {problem ? 'Edit Problem' : 'Create Problem'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
+            className="text-2xl text-slate-400 transition hover:text-slate-600"
             disabled={submitting}
           >
             ×
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 px-6">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title *
-            </label>
+            <label className="mb-2 block text-sm font-semibold text-slate-600">Title *</label>
             <input
               type="text"
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={fieldClass}
               placeholder="Two Sum"
             />
           </div>
 
           {/* Slug */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Slug *
-            </label>
+            <label className="mb-2 block text-sm font-semibold text-slate-600">Slug *</label>
             <input
               type="text"
               required
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={fieldClass}
               placeholder="two-sum"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description *
-            </label>
+            <label className="mb-2 block text-sm font-semibold text-slate-600">Description *</label>
             <textarea
               required
               rows={6}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={textAreaClass}
               placeholder="Problem description..."
             />
           </div>
@@ -131,15 +131,13 @@ export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: Pro
           {/* Difficulty & Language */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Difficulty *
-              </label>
+              <label className="mb-2 block text-sm font-semibold text-slate-600">Difficulty *</label>
               <select
                 value={formData.difficulty}
                 onChange={(e) =>
                   setFormData({ ...formData, difficulty: e.target.value as Difficulty })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={fieldClass}
               >
                 <option value="EASY">Easy</option>
                 <option value="MEDIUM">Medium</option>
@@ -147,15 +145,13 @@ export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: Pro
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Language *
-              </label>
+              <label className="mb-2 block text-sm font-semibold text-slate-600">Language *</label>
               <select
                 value={formData.language}
                 onChange={(e) =>
                   setFormData({ ...formData, language: e.target.value as Language })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={fieldClass}
               >
                 <option value="KOTLIN">Kotlin</option>
                 <option value="JAVA">Java</option>
@@ -166,20 +162,20 @@ export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: Pro
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-            <div className="flex gap-2 mb-2">
+            <label className="mb-2 block text-sm font-semibold text-slate-600">Tags</label>
+            <div className="mb-2 flex gap-2">
               <input
                 type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={fieldClass}
                 placeholder="Add tag..."
               />
               <button
                 type="button"
                 onClick={handleAddTag}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                className={buttonMutedClass}
               >
                 Add
               </button>
@@ -188,13 +184,13 @@ export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: Pro
               {formData.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm flex items-center gap-2"
+                  className="flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700"
                 >
                   {tag}
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="text-blue-600 hover:text-blue-900"
+                    className="text-indigo-500 transition hover:text-indigo-700"
                   >
                     ×
                   </button>
@@ -205,60 +201,56 @@ export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: Pro
 
           {/* Starter Code */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Starter Code
-            </label>
+            <label className="mb-2 block text-sm font-semibold text-slate-600">Starter Code</label>
             <textarea
               rows={8}
               value={formData.starterCode || ''}
               onChange={(e) => setFormData({ ...formData, starterCode: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              className={textAreaClass}
               placeholder="fun solution() { ... }"
             />
           </div>
 
           {/* Test Files */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Test Files *
-            </label>
-            <div className="space-y-3 mb-3">
+            <label className="mb-2 block text-sm font-semibold text-slate-600">Test Files *</label>
+            <div className="mb-3 space-y-3">
               <input
                 type="text"
                 value={testFileInput.path}
                 onChange={(e) => setTestFileInput({ ...testFileInput, path: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={fieldClass}
                 placeholder="src/test/kotlin/SolutionTest.kt"
               />
               <textarea
                 rows={6}
                 value={testFileInput.content}
                 onChange={(e) => setTestFileInput({ ...testFileInput, content: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                className={textAreaClass}
                 placeholder="Test file content..."
               />
               <button
                 type="button"
                 onClick={handleAddTestFile}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                className={`${buttonMutedClass} w-full`}
               >
                 Add Test File
               </button>
             </div>
             <div className="space-y-2">
               {formData.testFiles.map((file, index) => (
-                <div key={index} className="bg-gray-50 p-3 rounded border border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">{file.path}</span>
+                <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700">{file.path}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveTestFile(index)}
-                      className="text-red-600 hover:text-red-900 text-sm"
+                      className="text-sm text-red-600 transition hover:text-red-800"
                     >
                       Remove
                     </button>
                   </div>
-                  <pre className="text-xs text-gray-600 overflow-x-auto">
+                  <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-slate-600">
                     {file.content.substring(0, 200)}
                     {file.content.length > 200 && '...'}
                   </pre>
@@ -268,19 +260,19 @@ export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: Pro
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-40"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting || formData.testFiles.length === 0}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-500 disabled:opacity-40"
             >
               {submitting ? 'Saving...' : problem ? 'Update' : 'Create'}
             </button>
