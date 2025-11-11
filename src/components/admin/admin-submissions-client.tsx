@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AdminGuard } from './admin-guard';
-import { AdminNav } from './admin-nav';
+import { AdminPageFrame } from './admin-page-frame';
 import { useAuth } from '@/components/providers/auth-provider';
 import { fetchAllSubmissions } from '@/lib/api';
 import type { Submission, SubmissionStatus } from '@/lib/types';
@@ -13,7 +13,7 @@ export function AdminSubmissionsClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadSubmissions = async () => {
+  const loadSubmissions = useCallback(async () => {
     if (!token) return;
     try {
       setLoading(true);
@@ -25,11 +25,11 @@ export function AdminSubmissionsClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     loadSubmissions();
-  }, [token]);
+  }, [loadSubmissions]);
 
   const getStatusColor = (status: SubmissionStatus) => {
     switch (status) {
@@ -44,75 +44,64 @@ export function AdminSubmissionsClient() {
     }
   };
 
+  const panelClass =
+    'rounded-3xl border border-slate-100 bg-white/95 text-slate-900 shadow-xl shadow-slate-900/5 backdrop-blur';
+
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-gray-50">
-        <AdminNav />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Submission Management</h1>
+      <AdminPageFrame
+        title="Submission Management"
+        description="실시간 제출 현황을 확인하고 채점 상태를 빠르게 파악하세요."
+      >
+        {loading && (
+          <div className={`${panelClass} flex flex-col items-center gap-4 px-6 py-12 text-center`}>
+            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+            <p className="text-slate-600">제출 내역을 불러오는 중입니다...</p>
+          </div>
+        )}
 
-          {loading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading submissions...</p>
-            </div>
-          )}
+        {!loading && error && (
+          <div className={`${panelClass} border border-red-200 bg-red-50/80 text-red-900`}>
+            {error}
+          </div>
+        )}
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-              {error}
-            </div>
-          )}
-
-          {!loading && !error && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+        {!loading && !error && (
+          <section className={`${panelClass} overflow-hidden`}>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
+                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Problem ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Score
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Submitted At
-                    </th>
+                    <th className="px-6 py-3">User ID</th>
+                    <th className="px-6 py-3">Problem ID</th>
+                    <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3">Score</th>
+                    <th className="px-6 py-3">Submitted At</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-slate-100 bg-white text-slate-600">
                   {submissions.map((submission) => (
-                    <tr key={submission.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {submission.userId}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {submission.problemId}
-                      </td>
+                    <tr key={submission.id} className="transition hover:bg-indigo-50/30">
+                      <td className="px-6 py-4 whitespace-nowrap">{submission.userId}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{submission.problemId}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(submission.status)}`}
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusColor(
+                            submission.status,
+                          )}`}
                         >
                           {submission.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {submission.score}
-                        </div>
+                        <div className="text-sm font-semibold text-slate-900">{submission.score}</div>
                         {submission.feedback && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-slate-500">
                             {submission.feedback.passedTests}/{submission.feedback.totalTests} tests
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {new Date(submission.createdAt).toLocaleString()}
                       </td>
                     </tr>
@@ -120,12 +109,12 @@ export function AdminSubmissionsClient() {
                 </tbody>
               </table>
               {submissions.length === 0 && (
-                <div className="text-center py-8 text-gray-500">No submissions found</div>
+                <div className="px-6 py-8 text-center text-slate-500">제출 내역이 없습니다.</div>
               )}
             </div>
-          )}
-        </main>
-      </div>
+          </section>
+        )}
+      </AdminPageFrame>
     </AdminGuard>
   );
 }
