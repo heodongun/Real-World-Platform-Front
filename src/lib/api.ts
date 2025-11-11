@@ -1,6 +1,7 @@
 import { ApiError, ApiErrorPayload, resolveApiBaseUrl } from './config';
 import {
   AuthResponse,
+  CreateProblemPayload,
   DashboardStats,
   ExecuteCodePayload,
   ExecutionResponse,
@@ -10,6 +11,7 @@ import {
   RegisterPayload,
   Submission,
   SubmissionPayload,
+  UpdateProblemPayload,
 } from './types';
 
 interface NextFetchOptions {
@@ -145,5 +147,26 @@ export const submitSolution = (token: string, payload: SubmissionPayload) =>
   apiFetch('/api/submissions', {
     method: 'POST',
     body: JSON.stringify(payload),
+    token,
+  });
+
+// Admin API functions
+export const createProblem = (token: string, payload: CreateProblemPayload) =>
+  apiFetch<Problem>('/api/problems', {
+    method: 'POST',
+    token,
+    body: JSON.stringify(payload),
+  });
+
+export const updateProblem = (token: string, problemId: string, payload: UpdateProblemPayload) =>
+  apiFetch<Problem>(`/api/problems/${problemId}`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify(payload),
+  });
+
+export const deleteProblem = (token: string, problemId: string) =>
+  apiFetch<void>(`/api/problems/${problemId}`, {
+    method: 'DELETE',
     token,
   });
