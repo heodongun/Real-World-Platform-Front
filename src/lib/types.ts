@@ -153,3 +153,13 @@ export interface TestFile {
   path: string;
   content: string;
 }
+
+export interface AdminStats {
+  totalUsers: number;
+  adminUsers: number;
+  regularUsers: number;
+}
+
+export interface UpdateUserRolePayload {
+  role: UserRole;
+}
