@@ -11,7 +11,7 @@ export interface User {
 }
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
-export type Language = 'KOTLIN' | 'JAVA' | 'PYTHON';
+export type Language = 'KOTLIN' | 'JAVA' | 'PYTHON' | 'SPRING_BOOT_KOTLIN' | 'SPRING_BOOT_JAVA';
 
 export interface Problem {
   id: string;

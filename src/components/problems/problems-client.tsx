@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Problem } from '@/lib/types';
+import { Language, Problem } from '@/lib/types';
 import { ProblemCard } from '@/components/problems/problem-card';
 
 interface Props {
@@ -9,12 +9,19 @@ interface Props {
 }
 
 const difficultyFilters = ['ALL', 'EASY', 'MEDIUM', 'HARD'] as const;
-const languageFilters = ['ALL', 'KOTLIN', 'JAVA', 'PYTHON'] as const;
+const languageFilters = [
+  { value: 'ALL', label: '모든 언어' },
+  { value: 'KOTLIN' as Language, label: 'Kotlin' },
+  { value: 'JAVA' as Language, label: 'Java' },
+  { value: 'PYTHON' as Language, label: 'Python' },
+  { value: 'SPRING_BOOT_KOTLIN' as Language, label: 'Spring Boot (Kotlin)' },
+  { value: 'SPRING_BOOT_JAVA' as Language, label: 'Spring Boot (Java)' },
+] as const;
 
 export const ProblemsClient = ({ problems }: Props) => {
   const [keyword, setKeyword] = useState('');
   const [difficulty, setDifficulty] = useState<(typeof difficultyFilters)[number]>('ALL');
-  const [language, setLanguage] = useState<(typeof languageFilters)[number]>('ALL');
+  const [language, setLanguage] = useState<(typeof languageFilters)[number]['value']>('ALL');
 
   const filtered = useMemo(() => {
     return problems.filter((problem) => {
@@ -52,12 +59,14 @@ export const ProblemsClient = ({ problems }: Props) => {
         </select>
         <select
           value={language}
-          onChange={(event) => setLanguage(event.target.value as (typeof languageFilters)[number])}
+          onChange={(event) =>
+            setLanguage(event.target.value as (typeof languageFilters)[number]['value'])
+          }
           className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-indigo-300 focus:outline-none"
         >
           {languageFilters.map((l) => (
-            <option key={l} value={l} className="bg-slate-900 text-white">
-              {l === 'ALL' ? '모든 언어' : l}
+            <option key={l.value} value={l.value} className="bg-slate-900 text-white">
+              {l.label}
             </option>
           ))}
         </select>

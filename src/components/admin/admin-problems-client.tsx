@@ -6,6 +6,7 @@ import { AdminPageFrame } from './admin-page-frame';
 import { useAuth } from '@/components/providers/auth-provider';
 import { fetchProblems, createProblem, updateProblem, deleteProblem } from '@/lib/api';
 import type { Problem, CreateProblemPayload, Difficulty } from '@/lib/types';
+import { languageLabel } from '@/lib/utils';
 import { ProblemFormModal } from './problem-form-modal';
 
 export function AdminProblemsClient() {
@@ -147,7 +148,7 @@ export function AdminProblemsClient() {
                             {problem.difficulty}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-500">{problem.language}</td>
+                        <td className="px-6 py-4 text-sm text-slate-500">{languageLabel(problem.language)}</td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-2">
                             {problem.tags.map((tag) => (
