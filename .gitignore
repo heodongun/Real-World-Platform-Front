@@ -6,3 +6,7 @@ out/
 *.log
 .DS_Store
 coverage/
+.vscode/
+.idea/
+.claude/
+.codex/

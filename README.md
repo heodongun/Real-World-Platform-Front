@@ -2,6 +2,9 @@
 
 실무형 코딩 테스트 백엔드(`coding-platform-backend`)와 직접 통신하는 Next.js 14 + TypeScript 기반 프런트엔드입니다. 회원 인증, 문제 탐색/상세, 코드 제출, 제출 내역, 대시보드/리더보드 등 주요 기능을 한 화면에서 경험할 수 있도록 구성했습니다.
 
+## 배포 주소
+- Production Frontend: https://real-world-platform-front.pages.dev/
+
 ## 사전 준비
 
 1. 루트에서 백엔드를 기동합니다.
