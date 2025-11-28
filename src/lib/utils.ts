@@ -1,3 +1,5 @@
+import type { Language } from './types';
+
 export const cn = (...classes: Array<string | undefined | null | false>) =>
   classes.filter(Boolean).join(' ');
 
@@ -12,14 +14,29 @@ export const difficultyBadgeColor = (difficulty: string) => {
   }
 };
 
-export const languageColor = (language: string) => {
+export const languageColor = (language: Language | string) =>
+  ({
+    PYTHON: 'text-sky-600',
+    JAVA: 'text-rose-600',
+    SPRING_BOOT_JAVA: 'text-amber-600',
+    SPRING_BOOT_KOTLIN: 'text-emerald-700',
+    KOTLIN: 'text-indigo-600',
+  }[language] ?? 'text-slate-600');
+
+export const languageLabel = (language: Language | string) => {
   switch (language) {
-    case 'PYTHON':
-      return 'text-sky-600';
+    case 'SPRING_BOOT_KOTLIN':
+      return 'Spring Boot (Kotlin)';
+    case 'SPRING_BOOT_JAVA':
+      return 'Spring Boot (Java)';
+    case 'KOTLIN':
+      return 'Kotlin';
     case 'JAVA':
-      return 'text-rose-600';
+      return 'Java';
+    case 'PYTHON':
+      return 'Python';
     default:
-      return 'text-indigo-600';
+      return language;
   }
 };
 

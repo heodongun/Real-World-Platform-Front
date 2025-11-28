@@ -155,6 +155,8 @@ export function ProblemFormModal({ problem, onClose, onSubmit, submitting }: Pro
               >
                 <option value="KOTLIN">Kotlin</option>
                 <option value="JAVA">Java</option>
+                <option value="SPRING_BOOT_KOTLIN">Spring Boot (Kotlin)</option>
+                <option value="SPRING_BOOT_JAVA">Spring Boot (Java)</option>
                 <option value="PYTHON">Python</option>
               </select>
             </div>

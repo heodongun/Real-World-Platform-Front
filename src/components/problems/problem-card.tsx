@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import { Problem } from '@/lib/types';
-import { cn, difficultyBadgeColor, languageColor } from '@/lib/utils';
+import { cn, difficultyBadgeColor, languageColor, languageLabel } from '@/lib/utils';
 
 export const ProblemCard = ({ problem }: { problem: Problem }) => (
   <Link
@@ -18,7 +18,7 @@ export const ProblemCard = ({ problem }: { problem: Problem }) => (
         {problem.difficulty}
       </span>
       <span className={cn('text-sm font-semibold', languageColor(problem.language))}>
-        {problem.language}
+        {languageLabel(problem.language)}
       </span>
     </div>
     <h3 className="mt-4 text-xl font-semibold text-white">{problem.title}</h3>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
@@ -9,14 +9,20 @@ import { CodeEditor } from '@/components/editor/code-editor';
 import { ApiError } from '@/lib/config';
 import { executeCode, fetchSubmissions, submitSolution } from '@/lib/api';
 import { ExecutionResult, Problem, Submission } from '@/lib/types';
-import { formatDateTime } from '@/lib/utils';
+import { cn, formatDateTime } from '@/lib/utils';
 
 interface Props {
   problem: Problem;
 }
 
+type CodeFile = { id: string; path: string; content: string };
+
 const defaultFileName = (language: Problem['language']) => {
   switch (language) {
+    case 'SPRING_BOOT_KOTLIN':
+      return 'src/main/kotlin/com/codingplatform/order/OrderApplication.kt';
+    case 'SPRING_BOOT_JAVA':
+      return 'src/main/java/com/codingplatform/Application.java';
     case 'PYTHON':
       return 'main.py';
     case 'JAVA':
@@ -28,6 +34,9 @@ const defaultFileName = (language: Problem['language']) => {
 
 const defaultTestCommand = (language: Problem['language']) => {
   switch (language) {
+    case 'SPRING_BOOT_KOTLIN':
+    case 'SPRING_BOOT_JAVA':
+      return './gradlew test --no-daemon';
     case 'PYTHON':
       return 'python main.py';
     case 'JAVA':
@@ -36,6 +45,25 @@ const defaultTestCommand = (language: Problem['language']) => {
       return 'kotlinc Main.kt -include-runtime -d main.jar && java -jar main.jar';
   }
 };
+
+const newFileId = () =>
+  typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
+
+const createInitialFiles = (problem: Problem): CodeFile[] => [
+  {
+    id: newFileId(),
+    path: defaultFileName(problem.language),
+    content: problem.starterCode ?? '',
+  },
+];
+
+const filesToPayload = (files: CodeFile[]) =>
+  files.reduce<Record<string, string>>((acc, file) => {
+    acc[file.path.trim()] = file.content;
+    return acc;
+  }, {});
 
 const statusColor = (status: Submission['status']) => {
   switch (status) {
@@ -52,8 +80,10 @@ const statusColor = (status: Submission['status']) => {
 
 export const ProblemDetailClient = ({ problem }: Props) => {
   const { token, user } = useAuth();
-  const [code, setCode] = useState(problem.starterCode ?? '');
-  const [fileName, setFileName] = useState(defaultFileName(problem.language));
+  const initialFiles = useMemo(() => createInitialFiles(problem), [problem]);
+  const [files, setFiles] = useState<CodeFile[]>(initialFiles);
+  const [activeFileId, setActiveFileId] = useState<string>(initialFiles[0]?.id ?? newFileId());
+  const [newFilePath, setNewFilePath] = useState('');
   const [testCommand, setTestCommand] = useState(defaultTestCommand(problem.language));
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -63,6 +93,13 @@ export const ProblemDetailClient = ({ problem }: Props) => {
   const [refreshing, setRefreshing] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
+
+  useEffect(() => {
+    const nextFiles = createInitialFiles(problem);
+    setFiles(nextFiles);
+    setActiveFileId(nextFiles[0]?.id ?? newFileId());
+    setTestCommand(defaultTestCommand(problem.language));
+  }, [problem]);
 
   const loadSubmissions = useCallback(async () => {
     if (!token) return;
@@ -81,22 +118,77 @@ export const ProblemDetailClient = ({ problem }: Props) => {
     loadSubmissions();
   }, [loadSubmissions]);
 
+  const activeFile = files.find((file) => file.id === activeFileId) ?? files[0];
+
+  useEffect(() => {
+    if (!activeFile && files.length) {
+      setActiveFileId(files[0].id);
+    }
+  }, [activeFile, files]);
+
+  const updateActiveFileContent = (value: string) => {
+    setFiles((prev) =>
+      prev.map((file) => (file.id === activeFileId ? { ...file, content: value } : file)),
+    );
+  };
+
+  const updateActiveFilePath = (value: string) => {
+    setFiles((prev) =>
+      prev.map((file) => (file.id === activeFileId ? { ...file, path: value } : file)),
+    );
+  };
+
+  const handleAddFile = () => {
+    const path = newFilePath.trim();
+    if (!path) return;
+    if (files.some((file) => file.path.trim() === path)) {
+      setError('이미 존재하는 파일 경로입니다.');
+      return;
+    }
+    const nextFile: CodeFile = { id: newFileId(), path, content: '' };
+    setFiles((prev) => [...prev, nextFile]);
+    setActiveFileId(nextFile.id);
+    setNewFilePath('');
+  };
+
+  const handleRemoveFile = (id: string) => {
+    setFiles((prev) => {
+      if (prev.length === 1) return prev;
+      const filtered = prev.filter((file) => file.id !== id);
+      if (activeFileId === id && filtered[0]) {
+        setActiveFileId(filtered[0].id);
+      }
+      return filtered;
+    });
+  };
+
+  const validateFiles = (): string | null => {
+    if (!files.length) return '최소 1개 이상의 파일이 필요합니다.';
+    const trimmed = files.map((file) => file.path.trim());
+    if (trimmed.some((p) => !p)) return '모든 파일 경로를 입력하세요.';
+    if (new Set(trimmed).size !== trimmed.length) return '파일 경로가 중복되었습니다.';
+    if (!files.some((file) => file.content.trim())) return '적어도 하나의 파일에 코드가 있어야 합니다.';
+    return null;
+  };
+
   const handleSubmit = async () => {
     if (!token) {
       setError('제출하려면 로그인이 필요합니다.');
       return;
     }
-    if (!code.trim()) {
-      setError('코드 내용을 입력하세요.');
+    const validationMessage = validateFiles();
+    if (validationMessage) {
+      setError(validationMessage);
       return;
     }
     setLoading(true);
     setMessage(null);
     setError(null);
     try {
+      const filePayload = filesToPayload(files);
       await submitSolution(token, {
         problemId: problem.id,
-        files: { [fileName]: code },
+        files: filePayload,
       });
       setMessage('코드 평가가 시작되었습니다. 아래 제출 목록에서 상태를 확인하세요.');
       await loadSubmissions();
@@ -114,8 +206,9 @@ export const ProblemDetailClient = ({ problem }: Props) => {
       setExecuteError('즉시 실행하려면 먼저 로그인하세요.');
       return;
     }
-    if (!code.trim()) {
-      setExecuteError('코드 내용을 입력하세요.');
+    const validationMessage = validateFiles();
+    if (validationMessage) {
+      setExecuteError(validationMessage);
       return;
     }
     if (!testCommand.trim()) {
@@ -125,9 +218,10 @@ export const ProblemDetailClient = ({ problem }: Props) => {
     setExecuting(true);
     setExecuteError(null);
     try {
+      const filePayload = filesToPayload(files);
       const response = await executeCode(token, {
         language: problem.language,
-        files: { [fileName]: code },
+        files: filePayload,
         testCommand,
       });
       setExecutionResult(response.data);
@@ -143,21 +237,84 @@ export const ProblemDetailClient = ({ problem }: Props) => {
   return (
     <div className="space-y-8">
       <div className="rounded-[32px] border border-white/10 bg-slate-900/40 p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
             <p className="text-sm text-slate-400">로그인한 사용자만 제출할 수 있습니다.</p>
             <p className="text-base text-slate-200">
               {user ? `${user.name} 님, 코드를 작성해 주세요.` : '현재 비회원 상태입니다.'}
             </p>
+            <p className="text-xs text-slate-500">
+              여러 파일을 추가해 서비스/컨트롤러/도메인 코드를 분리할 수 있습니다.
+            </p>
           </div>
-          <Input
-            value={fileName}
-            onChange={(event) => setFileName(event.target.value)}
-            className="bg-white/10 text-sm sm:w-60"
-          />
+          <div className="w-full space-y-2 sm:w-96">
+            <div className="flex flex-wrap gap-2">
+              {files.map((file) => (
+                <button
+                  key={file.id}
+                  type="button"
+                  onClick={() => setActiveFileId(file.id)}
+                  className={cn(
+                    'flex items-center gap-2 rounded-xl border px-3 py-1 text-xs transition',
+                    activeFileId === file.id
+                      ? 'border-indigo-400/80 bg-indigo-500/10 text-indigo-100'
+                      : 'border-white/10 bg-white/5 text-slate-300 hover:border-indigo-300/50',
+                  )}
+                >
+                  <span className="max-w-[200px] truncate">{file.path || '새 파일'}</span>
+                  {files.length > 1 && (
+                    <span
+                      className="text-slate-500 hover:text-rose-400"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFile(file.id);
+                      }}
+                    >
+                      ×
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input
+                value={newFilePath}
+                onChange={(event) => setNewFilePath(event.target.value)}
+                placeholder="src/main/kotlin/com/example/NewFile.kt"
+                className="bg-white/10 text-xs"
+              />
+              <Button variant="secondary" onClick={handleAddFile}>
+                파일 추가
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="mt-6">
-          <CodeEditor value={code} onChange={setCode} language={problem.language} />
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-[2fr_1fr] sm:items-center">
+          <div className="space-y-2">
+            <label className="text-xs uppercase text-slate-400">현재 파일 경로</label>
+            <Input
+              value={activeFile?.path ?? ''}
+              onChange={(event) => updateActiveFilePath(event.target.value)}
+              className="bg-white/10 text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs uppercase text-slate-400">추천 경로 힌트</label>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300">
+              {problem.language.startsWith('SPRING_BOOT')
+                ? 'src/main/kotlin 또는 src/main/java 경로와 패키지를 맞춰 주세요.'
+                : '단일 파일 문제는 기본 파일명을 사용해도 됩니다.'}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <CodeEditor
+            value={activeFile?.content ?? ''}
+            onChange={updateActiveFileContent}
+            language={problem.language}
+          />
         </div>
         <div className="mt-4 flex flex-wrap gap-3">
           <Button onClick={handleSubmit} loading={loading}>
@@ -191,7 +348,7 @@ export const ProblemDetailClient = ({ problem }: Props) => {
             value={testCommand}
             onChange={(event) => setTestCommand(event.target.value)}
             className="bg-white/10 text-xs sm:w-96"
-            placeholder="python main.py"
+            placeholder={defaultTestCommand(problem.language)}
           />
         </div>
         <div className="mt-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-slate-400">
@@ -201,6 +358,8 @@ export const ProblemDetailClient = ({ problem }: Props) => {
             {problem.language === 'JAVA' && 'javac Main.java && java Main'}
             {problem.language === 'KOTLIN' &&
               'kotlinc Main.kt -include-runtime -d main.jar && java -jar main.jar'}
+            {problem.language === 'SPRING_BOOT_KOTLIN' && './gradlew test --no-daemon'}
+            {problem.language === 'SPRING_BOOT_JAVA' && './gradlew test --no-daemon'}
           </span>
         </div>
         <div className="mt-4 flex flex-wrap gap-3">

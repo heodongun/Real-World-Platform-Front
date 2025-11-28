@@ -10,6 +10,8 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false 
 const languageMap: Record<Language, string> = {
   KOTLIN: 'java',
   JAVA: 'java',
+  SPRING_BOOT_KOTLIN: 'java',
+  SPRING_BOOT_JAVA: 'java',
   PYTHON: 'python',
 };
 
